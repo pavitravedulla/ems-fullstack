@@ -1,0 +1,81 @@
+# ===============================
+# BACKEND DEPLOYMENT & SERVICE
+# ===============================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment
+  labels:
+    app: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: employee-backend
+        image: employee-backend:latest
+        ports:
+        - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+spec:
+  type: ClusterIP
+  selector:
+    app: backend
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: 8080
+
+# ===============================
+# FRONTEND DEPLOYMENT & SERVICE
+# ===============================
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-deployment
+  labels:
+    app: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+      - name: employee-frontend
+        image: employee-frontend:latest
+        ports:
+        - containerPort: 80
+        env:
+        - name: BACKEND_URL
+          value: "http://backend-service:8080"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+spec:
+  type: NodePort
+  selector:
+    app: frontend
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+    nodePort: 30080
+
